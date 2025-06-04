@@ -49,22 +49,29 @@ Once installed:
 ```yaml
 type: custom:lg-appliance-card
 washer:
-enabled: true
-entities:
- remaining_time: sensor.lg_washer_remaining_time
- initial_time: sensor.lg_washer_initial_time
- run_state: sensor.lg_washer_run_state
- spin_speed: sensor.lg_washer_spin_speed
- water_temp: sensor.lg_washer_water_temp
-display:
- - run_state
- - spin_speed
- - water_temp
+  enabled: true
+  entities:
+    remaining_time: sensor.washer_remaining_time
+    initial_time: sensor.washer_initial_time
+    run_state: sensor.washer_run_state
+    spin_speed: sensor.washer_spin_speed
+    water_temp: sensor.washer_water_temp
+  display:
+    - run_state
+    - spin_speed
+    - water_temp
+
+
+
+
+type: custom:lg-appliance-card
 dryer:
-enabled: true
-entities:
- remaining_time: sensor.lg_dryer_remaining_time
- run_state: sensor.lg_dryer_run_state
-display:
- - run_state
- - remaining_time
+  enabled: true
+  entities:
+    remaining_time: sensor.dryer_remaining_time
+    initial_time: sensor.dryer_initial_time
+    run_state: sensor.dryer_run_state
+    course: sensor.dryer_course
+  display:
+    - run_state
+    - course
