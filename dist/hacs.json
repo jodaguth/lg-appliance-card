@@ -1,9 +1,9 @@
 {
   "name": "LG Appliance Card",
-  "filename": "dist/lg-appliance-card.js",
+  "filename": "lg-appliance-card.js",
   "type": "module",
+  "render_readme": true,
   "description": "Minimalist washer and dryer card for LG ThinQ integrations with animated progress ring.",
   "authors": ["your-github-username"],
-  "render_readme": true,
   "documentation": "https://github.com/your-github-username/lg-appliance-card"
 }
