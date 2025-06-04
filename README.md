@@ -1,77 +1,92 @@
 # LG Appliance Card
 
-A minimalist, modern Home Assistant card for LG ThinQ washers and dryers.
+A modern, minimalist Home Assistant card for displaying your LG ThinQ washer and dryer. Includes animated progress rings, real-time status, and beautiful Venus OS–inspired visuals. Fully configurable and HACS-compatible.
 
-![Washer + Dryer Card Demo](https://your-screenshot-url-here.com) <!-- Optional GIF or PNG -->
+![Screenshot](https://raw.githubusercontent.com/your-github-username/lg-appliance-card/main/assets/screenshot.png)
 
 ---
 
 ## ✨ Features
 
-- 🧺 Displays both **Washer** and **Dryer** in a single card
-- 📊 **Progress ring** based on remaining vs initial time
-- 🔧 Fully configurable via **Lovelace UI editor**
-- ✅ Choose which fields to display (e.g. run state, spin speed, water temp)
-- 💡 Light/dark theme compatible
-- 🔄 Real-time updates via the [LG ThinQ Devices HACS integration](https://github.com/ollo69/ha-smartthinq-sensors)
+- Dual washer + dryer layout in one card
+- Animated progress ring based on remaining vs initial time
+- Auto-blur and “Off” overlay when appliance is powered down
+- Entity configuration UI via visual editor
+- Responsive, clean, and Venus OS–inspired style
 
 ---
 
-## 🚀 Installation
+## 📦 Installation (via HACS)
 
-### Via HACS (recommended)
-
-1. In Home Assistant, go to **HACS > Frontend > ⋮ > Custom repositories**
-2. Add repository:  https://github.com/YOUR_USERNAME/lg-appliance-card
-
-Category: `Lovelace`
-3. Install the **LG Appliance Card**
-4. Refresh your browser (Ctrl+F5)
+1. In Home Assistant, go to **HACS > Frontend > Custom Repositories**
+2. Add this repo: `https://github.com/your-github-username/lg-appliance-card`
+3. Select **Lovelace** and click **Add**
+4. Go to **Frontend**, find **LG Appliance Card**, and click Install
+5. Add the card to a dashboard
 
 ---
 
-## 🧰 Setup
-
-Once installed:
-
-1. Go to any dashboard
-2. Click **Edit dashboard** → **+ Add Card**
-3. Search for `LG Appliance Card`
-4. Use the editor to:
-- Select washer and dryer entities
-- Choose which fields to show
-- Save and enjoy
-
----
-
-## 🧪 Example YAML
+## 🛠️ Manual YAML Configuration
 
 ```yaml
 type: custom:lg-appliance-card
 washer:
   enabled: true
   entities:
+    power: switch.washer_power
     remaining_time: sensor.washer_remaining_time
     initial_time: sensor.washer_initial_time
     run_state: sensor.washer_run_state
-    spin_speed: sensor.washer_spin_speed
+    run_completed: sensor.washer_run_completed
+    course: sensor.washer_current_course
+    spin_speed: sensor.washer_spin
     water_temp: sensor.washer_water_temp
-  display:
-    - run_state
-    - spin_speed
-    - water_temp
-
-
-
-
-type: custom:lg-appliance-card
 dryer:
   enabled: true
   entities:
+    power: switch.dryer_power
     remaining_time: sensor.dryer_remaining_time
     initial_time: sensor.dryer_initial_time
     run_state: sensor.dryer_run_state
-    course: sensor.dryer_course
-  display:
-    - run_state
-    - course
+    run_completed: sensor.dryer_run_completed
+    course: sensor.dryer_current_course
+```
+
+---
+
+## 🧩 Required Integrations
+
+- [LG ThinQ Devices (HACS)](https://github.com/ollo69/ha-smartthinq-sensors)
+
+---
+
+## 🔧 Developer Notes
+
+- Built with `lit`, `rollup`, and `@rollup/plugin-typescript`
+- See `rollup.config.mjs` and `hacs.json` for build + distribution config
+
+---
+
+## 🔖 Versioning
+
+This repo uses [GitHub Releases](https://github.com/your-github-username/lg-appliance-card/releases) to publish updates. Each tag must contain:
+
+- Built `dist/lg-appliance-card.js`
+- Valid `hacs.json`
+- Updated changelog in release notes
+
+---
+
+## 💬 Feedback / Issues
+
+Open an issue or pull request on GitHub.
+
+---
+
+## 🧑‍💻 Author
+
+Created by [your-github-username](https://github.com/your-github-username) — contributions welcome!
+
+---
+
+MIT License

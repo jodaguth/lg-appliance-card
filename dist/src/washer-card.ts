@@ -11,17 +11,19 @@ export class WasherCard extends LitElement {
   static styles = css`
     :host {
       display: block;
+      max-width: 300px;
+      margin: auto;
     }
 
     .card {
       position: relative;
-      padding: 1.5rem;
+      padding: 1rem;
       border-radius: 1rem;
       background: var(--card-background-color);
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      gap: 1rem;
       overflow: hidden;
       transition: filter 0.4s ease, opacity 0.4s ease;
     }
@@ -46,59 +48,64 @@ export class WasherCard extends LitElement {
     }
 
     .header {
-      display: flex;
-      justify-content: space-between;
       font-size: 1.25rem;
       font-weight: bold;
       border-bottom: 1px solid var(--divider-color);
-      padding-bottom: 0.5rem;
+      padding-bottom: 0.25rem;
+      text-align: center;
     }
 
     .ring-wrap {
       display: flex;
-      justify-content: center;
-    }
-
-    .ring {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: conic-gradient(var(--ring-color) var(--angle), #444 0deg);
-      display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      color: white;
+      gap: 0.4rem;
+    }
+
+    svg.ring {
+      width: 150px;
+      height: 150px;
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: #444;
+      stroke-width: 10;
+    }
+
+    .ring-fg {
+      fill: none;
+      stroke: var(--ring-color, #1e90ff);
+      stroke-width: 10;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: center;
+      transition: stroke-dashoffset 0.6s ease;
+    }
+
+    .ring-text {
+      fill: var(--primary-text-color);
+      font-size: 1.2rem;
       font-weight: bold;
-      font-size: 1rem;
-      transition: background 0.8s ease;
+      dominant-baseline: middle;
     }
 
-    .ring::after {
-      content: "";
-      position: absolute;
-      width: 70px;
-      height: 70px;
-      background: var(--card-background-color);
-      border-radius: 50%;
-      z-index: 1;
-    }
-
-    .ring span {
-      position: relative;
-      z-index: 2;
+    .time-left {
+      font-size: 0.9rem;
+      color: var(--secondary-text-color);
+      margin-top: -0.5rem;
     }
 
     .tile-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 0.8rem;
+      gap: 0.6rem;
     }
 
     .tile {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--divider-color);
-      padding: 0.75rem;
+      padding: 0.5rem;
       border-radius: 0.75rem;
       text-align: center;
       display: flex;
@@ -121,7 +128,7 @@ export class WasherCard extends LitElement {
     .tile .label {
       color: var(--secondary-text-color);
       font-size: 0.75rem;
-      margin-top: 0.3rem;
+      margin-top: 0.2rem;
     }
   `;
 
@@ -136,51 +143,53 @@ export class WasherCard extends LitElement {
     const init = s[e.initial_time!]?.state || "0:00";
     const rem = s[e.remaining_time!]?.state || "0:00";
 
-    const [ih, im] = init.split(":").map(Number);
-    const [rh, rm] = rem.split(":").map(Number);
+    const [ih, im] = init.split(":" ).map(Number);
+    const [rh, rm] = rem.split(":" ).map(Number);
     const total = ih * 60 + im;
     const left = rh * 60 + rm;
     const percent = total > 0 ? Math.min(100, ((total - left) / total) * 100) : 0;
+    const strokeCircumference = 2 * Math.PI * 45;
 
-    const ringColor = state === "done"
-      ? "#00cc66"
-      : state === "running"
-      ? "#1e90ff"
-      : "#888888";
+    const ringColor =
+      state === "done" ? "#00cc66" : state === "running" ? "#1e90ff" : "#888888";
 
     this.style.setProperty("--ring-color", ringColor);
-    this.style.setProperty("--angle", `${(percent * 3.6).toFixed(1)}deg`);
 
     const icon = (name: string) => html`<ha-icon icon="${name}"></ha-icon>`;
 
     return html`
       <div class="card ${!isOn ? "off" : ""}">
         ${!isOn ? html`<div class="overlay">Off</div>` : ""}
-
         <div class="header">Washer</div>
-
         <div class="ring-wrap">
-          <div class="ring">
-            <span>${state === "done" ? "Done" : `${percent.toFixed(0)}%`}</span>
-          </div>
+          <svg class="ring" viewBox="0 0 100 100">
+            <circle class="ring-bg" cx="50" cy="50" r="45" />
+            <circle
+              class="ring-fg"
+              cx="50"
+              cy="50"
+              r="45"
+              stroke-dasharray="${strokeCircumference}"
+              stroke-dashoffset="${strokeCircumference - (strokeCircumference * percent) / 100}"
+            />
+            <text x="50%" y="54%" text-anchor="middle" class="ring-text">
+              ${state === "done" ? "Done" : `${percent.toFixed(0)}%`}
+            </text>
+          </svg>
+          <div class="time-left">${rem} remaining</div>
         </div>
 
         <div class="tile-grid">
           ${d.includes("run_state") && e.run_state
-            ? html`<div class="tile">${icon("mdi:play-circle")}<div class="value">${state}</div><div class="label">Status</div></div>`
-            : ""}
+            ? html`<div class="tile">${icon("mdi:play-circle")}<div class="value">${state}</div><div class="label">Status</div></div>` : ""}
           ${d.includes("spin_speed") && e.spin_speed
-            ? html`<div class="tile">${icon("mdi:rotate-right")}<div class="value">${s[e.spin_speed]?.state ?? "-"}</div><div class="label">Spin</div></div>`
-            : ""}
+            ? html`<div class="tile">${icon("mdi:rotate-right")}<div class="value">${s[e.spin_speed]?.state ?? "-"}</div><div class="label">Spin</div></div>` : ""}
           ${d.includes("water_temp") && e.water_temp
-            ? html`<div class="tile">${icon("mdi:thermometer")}<div class="value">${s[e.water_temp]?.state ?? "-"}</div><div class="label">Temp</div></div>`
-            : ""}
+            ? html`<div class="tile">${icon("mdi:thermometer")}<div class="value">${s[e.water_temp]?.state ?? "-"}</div><div class="label">Temp</div></div>` : ""}
           ${d.includes("course") && e.course
-            ? html`<div class="tile">${icon("mdi:playlist-check")}<div class="value">${s[e.course]?.state ?? "-"}</div><div class="label">Course</div></div>`
-            : ""}
+            ? html`<div class="tile">${icon("mdi:playlist-check")}<div class="value">${s[e.course]?.state ?? "-"}</div><div class="label">Course</div></div>` : ""}
           ${d.includes("run_completed") && e.run_completed
-            ? html`<div class="tile">${icon("mdi:check-circle")}<div class="value">${s[e.run_completed]?.state ?? "-"}</div><div class="label">Complete</div></div>`
-            : ""}
+            ? html`<div class="tile">${icon("mdi:check-circle")}<div class="value">${s[e.run_completed]?.state ?? "-"}</div><div class="label">Complete</div></div>` : ""}
         </div>
       </div>
     `;

@@ -69,3 +69,17 @@ export class LGApplianceCard extends LitElement {
     `;
   }
 }
+
+// register with Home Assistant UI
+declare global {
+  interface Window {
+    customCards: unknown[];
+  }
+}
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "lg-appliance-card",
+  name: "LG Appliance Card",
+  description: "A dual washer/dryer UI card with animated progress ring and minimal design."
+});

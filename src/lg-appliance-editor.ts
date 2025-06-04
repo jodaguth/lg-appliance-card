@@ -1,120 +1,66 @@
 import { html, css, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "custom-card-helpers";
-import type { LGApplianceCardConfig, LGApplianceConfig } from "./types";
+import type { LGApplianceConfig } from "./types";
 
 @customElement("lg-appliance-editor")
 export class LGApplianceEditor extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
-  @state() private _config!: LGApplianceCardConfig;
+  @state() private _config!: LGApplianceConfig;
 
   static styles = css`
-    .section {
-      border: 1px solid var(--divider-color, #ccc);
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-    }
-    .section h2 {
-      margin-top: 0;
-      font-size: 1.1rem;
-    }
-    .field {
+    .form {
       display: flex;
       flex-direction: column;
-      margin-bottom: 0.8rem;
+      gap: 1rem;
     }
-    label {
-      font-weight: bold;
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    ha-select, ha-textfield {
+      flex: 1;
     }
   `;
 
-  setConfig(config: LGApplianceCardConfig) {
+  setConfig(config: LGApplianceConfig): void {
     this._config = config;
   }
 
-  private _handleEntityChange(ev: Event, section: "washer" | "dryer", key: string) {
-    const value = (ev.target as HTMLInputElement).value;
-    const newConfig = { ...this._config };
-    newConfig[section] = {
-      ...newConfig[section],
-      enabled: true,
-      entities: {
-        ...newConfig[section]?.entities,
-        [key]: value,
-      },
-      display: [...(newConfig[section]?.display || [])],
-    };
-    this._config = newConfig;
-    this._emitChange();
-  }
+  private _valueChanged(ev: Event): void {
+    const target = ev.target as HTMLInputElement;
+    const value = target.value;
+    const field = target.getAttribute("data-field") as keyof LGApplianceConfig["entities"];
+    if (!field || !this._config) return;
 
-  private _handleDisplayToggle(ev: Event, section: "washer" | "dryer", key: string) {
-    const checked = (ev.target as HTMLInputElement).checked;
-    const newConfig = { ...this._config };
-    const display = new Set(newConfig[section]?.display || []);
-    if (checked) display.add(key);
-    else display.delete(key);
-
-    newConfig[section] = {
-      ...newConfig[section],
-      enabled: true,
+    const newConfig: LGApplianceConfig = {
+      ...this._config,
       entities: {
-        ...newConfig[section]?.entities,
+        ...this._config.entities,
+        [field]: value,
       },
-      display: Array.from(display),
     };
 
     this._config = newConfig;
-    this._emitChange();
+    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: newConfig } }));
   }
 
-  private _emitChange() {
-    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._config } }));
-  }
-
-  private _renderSection(label: string, section: "washer" | "dryer"): unknown {
-    const e = this._config?.[section]?.entities || {};
-    const d = this._config?.[section]?.display || [];
-    const allEntities = Object.keys(this.hass.states);
-
-    const fieldList: { label: string; key: keyof typeof e }[] = [
-      { label: "Power", key: "power" },
-      { label: "Remaining Time", key: "remaining_time" },
-      { label: "Initial Time", key: "initial_time" },
-      { label: "Run State", key: "run_state" },
-      { label: "Run Completed", key: "run_completed" },
-      { label: "Course", key: "course" },
-      { label: "Spin Speed", key: "spin_speed" },
-      { label: "Water Temp", key: "water_temp" },
-    ];
-
+  private renderEntityRow(label: string, field: keyof LGApplianceConfig["entities"]): unknown {
+    const entities = Object.keys(this.hass.states).filter((eid) => eid.startsWith("sensor") || eid.startsWith("switch"));
     return html`
-      <div class="section">
-        <h2>${label}</h2>
-        ${fieldList.map(
-          (f) => html`
-            <div class="field">
-              <label>${f.label}</label>
-              <select @change=${(e: Event) => this._handleEntityChange(e, section, f.key)}>
-                <option value="">(None)</option>
-                ${allEntities.map(
-                  (id) => html`
-                    <option value="${id}" ?selected=${e[f.key] === id}>${id}</option>
-                  `
-                )}
-              </select>
-              <label>
-                <input
-                  type="checkbox"
-                  .checked=${d.includes(f.key)}
-                  @change=${(e: Event) => this._handleDisplayToggle(e, section, f.key)}
-                />
-                Show on card
-              </label>
-            </div>
-          `
-        )}
+      <div class="row">
+        <label>${label}</label>
+        <ha-select
+          .value=${this._config.entities?.[field] ?? ""}
+          data-field=${field}
+          @selected=${this._valueChanged}
+          @change=${this._valueChanged}
+        >
+          ${entities.map(
+            (eid) => html`<mwc-list-item value=${eid}>${eid}</mwc-list-item>`
+          )}
+        </ha-select>
       </div>
     `;
   }
@@ -122,8 +68,16 @@ export class LGApplianceEditor extends LitElement {
   render() {
     if (!this.hass || !this._config) return html``;
     return html`
-      ${this._renderSection("Washer", "washer")}
-      ${this._renderSection("Dryer", "dryer")}
+      <div class="form">
+        ${this.renderEntityRow("Power Switch", "power")}
+        ${this.renderEntityRow("Initial Time", "initial_time")}
+        ${this.renderEntityRow("Remaining Time", "remaining_time")}
+        ${this.renderEntityRow("Run State", "run_state")}
+        ${this.renderEntityRow("Course", "course")}
+        ${this.renderEntityRow("Run Completed", "run_completed")}
+        ${this.renderEntityRow("Spin Speed", "spin_speed")}
+        ${this.renderEntityRow("Water Temp", "water_temp")}
+      </div>
     `;
   }
 }
